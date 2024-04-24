@@ -1,17 +1,44 @@
-// Importing the express library to create the server
-const express = require('express');
-// Initializing the express application
-const app = express();
+// Create web server
+var express = require('express');
+var app = express();
+var bodyParser = require('body-parser');
+var fs = require('fs');
+var path = require('path');
+var url = require('url');
+var querystring = require('querystring');
+var comments = require('./comments');
+var commentsPath = path.join(__dirname, 'comments.json');
 
-// Route handler for the home page to send a response 'Hello World!'
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+// Read comments from file
+var comments = require('./comments');
+var commentsPath = path.join(__dirname, 'comments.json');
+
+// Parse POST request
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+
+// Set up server
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Get comments from file
+app.get('/comments', function(req, res) {
+  fs.readFile(commentsPath, function(err, data) {
+    if (err) {
+      console.error(err);
+      process.exit(1);
+    }
+    var comments = JSON.parse(data);
+    res.json(comments);
+  });
 });
 
-// Setting the port number from the environment variable or default to 3000
-const PORT = process.env.PORT || 3000;
-
-// Starting the server and logging the running port
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Add comment to file
+app.post('/comments', function(req, res) {
+  fs.readFile(commentsPath, function(err, data) {
+    if (err) {
+      console.error(err);
+      process.exit(1);
+    }
+    var comments = JSON.parse(data);
+    var newComment = {
+      id: Date.now()
